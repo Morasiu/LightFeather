@@ -22,7 +22,7 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          [xml]$csproj = Get-Content "LightFeather/LightFeather.csproj"
+          [xml]$csproj = Get-Content "LightFeather.csproj"
           $version = $csproj.Project.PropertyGroup `
             | Where-Object { $_.ApplicationVersion } `
             | Select-Object -First 1 -ExpandProperty ApplicationVersion
