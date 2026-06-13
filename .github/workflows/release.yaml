@@ -1,0 +1,66 @@
+name: Publish VSTO Add-in Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: ./src/LightFeather
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from csproj
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$csproj = Get-Content "LightFeather/LightFeather.csproj"
+          $version = $csproj.Project.PropertyGroup `
+            | Where-Object { $_.ApplicationVersion } `
+            | Select-Object -First 1 -ExpandProperty ApplicationVersion
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore LightFeather.sln
+
+      - name: Build & Publish VSTO
+        shell: pwsh
+        run: |
+          msbuild LightFeather.sln `
+            /p:Configuration=Release `
+            /p:Platform="Any CPU" `
+            /p:PublishDir=publish\ `
+            /p:IsWebBootstrapper=false `
+            /p:UpdateEnabled=false `
+            /p:SignManifests=false `
+            /target:Publish
+
+      - name: Zip publish output
+        shell: pwsh
+        run: |
+          Compress-Archive -Path publish\* `
+            -DestinationPath "LightFeather-v${{ steps.version.outputs.VERSION }}.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: LightFeather v${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: LightFeather-v${{ steps.version.outputs.VERSION }}.zip
+          generate_release_notes: true
