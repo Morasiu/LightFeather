@@ -1,3 +1,5 @@
+![Logo](./docs/logo.png)
+
 # LightFeather
 
 **LightFeather** is a Microsoft Word add-in (VSTO) built for writers who want to improve the rhythm and flow of their prose.
