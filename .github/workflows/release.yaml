@@ -28,8 +28,22 @@ jobs:
             | Select-Object -First 1 -ExpandProperty ApplicationVersion
           echo "VERSION=$version" >> $env:GITHUB_OUTPUT
 
+      - name: Install VSTO workload
+        shell: pwsh
+        run: |
+          $installer = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+          & $installer modify `
+            --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" `
+            --add Microsoft.VisualStudio.Workload.Office `
+            --includeRecommended `
+            --quiet --norestart --force
+          # vs_installer jest async — poczekaj aż skończy
+          Start-Sleep -Seconds 60
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+        with:
+          vs-version: '[17.0,18.0)'   # użyj VS z agenta, nie standalone
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
