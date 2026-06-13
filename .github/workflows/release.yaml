@@ -43,7 +43,7 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
         with:
-          vs-version: '[17.0,18.0)'   # użyj VS z agenta, nie standalone
+          msbuild-architecture: x64    # x86 też może być problemem na nowszych agentach
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
