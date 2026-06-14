@@ -53,14 +53,6 @@ namespace LightFeather.Features.Rhythm {
 			}
 		}
 
-		private static void CheckRhythmForWholeDocument() {
-			var document = Globals.ThisAddIn.Application.ActiveDocument;
-
-			foreach (Paragraph paragraph in document.Paragraphs) {
-				CheckRhythmForParagraph(paragraph);
-			}
-		}
-
 		private static void CheckRhythmForParagraph(Paragraph paragraph) {
 			int previousSentenceWordCount = 0;
 			foreach (Range sentence in paragraph.Range.Sentences) {
@@ -83,10 +75,14 @@ namespace LightFeather.Features.Rhythm {
 			Debug.WriteLine("[Rhythm] Internal check. Sentences changed: " + ChangedSentences.Count);
 		}
 
-		private static void MarkSentenceAsIncorrectRhythm(Range sentenceToEdit, int count) {
-			var changedSentence = new ChangedSentence() { Sentence = sentenceToEdit };
-			if (UseBackgroundChange) changedSentence.PreviousBackgroundColor = ChangeBackgroundColor(sentenceToEdit);
-			if (UseComments) changedSentence.Comment = AddComment(sentenceToEdit, count);
+		private static void MarkSentenceAsIncorrectRhythm(Range sentence, int count) {
+			var changedSentence = new ChangedSentence() { Sentence = sentence };
+			if (UseBackgroundChange) changedSentence.PreviousBackgroundColor = ChangeBackgroundColor(sentence);
+			if (UseComments) {
+				changedSentence.Comment = AddComment(sentence, count);
+				changedSentence.PreviousUnderline = sentence.Underline;
+				sentence.Underline = WdUnderline.wdUnderlineWavyHeavy;
+			}
 			ChangedSentences.Add(changedSentence);
 		}
 
@@ -127,17 +123,32 @@ namespace LightFeather.Features.Rhythm {
 
 			foreach (var changedSentence in ChangedSentences) {
 				SafeCleanBackgroundColor(changedSentence);
+				SafeCleanUnderline(changedSentence);
 				SafeDeleteComment(changedSentence.Comment);
 			}
 
 			ChangedSentences.Clear();
 		}
 
-		private static void SafeDeleteComment(Comment comment) {
-			if (comment is null) return;
+		private static void SafeDeleteComment(Comment comment)
+		{
+			if (comment is null)
+				return;
 
-			try {
+			try
+			{
 				comment?.DeleteRecursively();
+			} catch (Exception e)
+			{
+				Debug.WriteLine($"Error: {e}");
+			}
+		}
+
+		private static void SafeCleanUnderline(ChangedSentence changedSentence) {
+			try {
+				if (changedSentence.Sentence.Underline == WdUnderline.wdUnderlineWavyHeavy) {
+					changedSentence.Sentence.Underline = changedSentence.PreviousUnderline.Value;
+				}
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"Error: {e}");
@@ -148,6 +159,9 @@ namespace LightFeather.Features.Rhythm {
 			if (changedSentence.PreviousBackgroundColor == null) return;
 			try {
 				changedSentence.Sentence.Shading.BackgroundPatternColor = changedSentence.PreviousBackgroundColor.Value;
+				if (changedSentence.Sentence.Underline == WdUnderline.wdUnderlineWavyHeavy) {
+					changedSentence.Sentence.Underline = WdUnderline.wdUnderlineNone;
+				}
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"Error: {e}");
@@ -163,8 +177,13 @@ namespace LightFeather.Features.Rhythm {
 
 				foreach (Range sentence in paragraph.Range.Sentences) {
 					var trimmedSentence = sentence.Trim();
-					if (trimmedSentence.Shading.BackgroundPatternColor == GetRhythmCheckerBackgroundColor())
+					if (trimmedSentence.Shading.BackgroundPatternColor == GetRhythmCheckerBackgroundColor()) {
 						trimmedSentence.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
+					}
+
+					if (trimmedSentence.Underline == WdUnderline.wdUnderlineWavyHeavy) {
+						trimmedSentence.Underline = WdUnderline.wdUnderlineNone;
+					}
 				}
 			}
 

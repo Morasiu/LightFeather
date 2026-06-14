@@ -11,14 +11,17 @@ namespace LightFeather.Extensions {
 
 		public static Range Trim(this Range sentence)
 		{
-			var sentenceToEdit = sentence;
-			if (sentence.Text.EndsWith("\r"))
-			{
-				var activeDocument = Globals.ThisAddIn.Application.ActiveDocument;
-				var trimmedRange = activeDocument.Range(sentence.Start, sentence.End - 1);
-				sentenceToEdit = trimmedRange;
+			var sentenceStart = sentence.Start;
+			var sentenceEnd = sentence.End;
+
+			if (sentence.Text.TrimEnd() != sentence.Text) {
+				var sentenceLength = sentence.Text.TrimEnd().Length;
+				sentenceEnd = sentenceStart + sentenceLength;
 			}
-			return sentenceToEdit;
+
+			var activeDocument = Globals.ThisAddIn.Application.ActiveDocument;
+			var trimmedSentence = activeDocument.Range(sentenceStart, sentenceEnd);
+			return trimmedSentence;
 		}
 	}
 }

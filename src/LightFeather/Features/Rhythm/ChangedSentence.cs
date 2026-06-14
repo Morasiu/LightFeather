@@ -6,5 +6,6 @@ namespace LightFeather.Features.Rhythm {
 		public Range Sentence;
 		public WdColor? PreviousBackgroundColor;
 		public Comment Comment;
+		public WdUnderline? PreviousUnderline { get; set; }
 	}
 }
