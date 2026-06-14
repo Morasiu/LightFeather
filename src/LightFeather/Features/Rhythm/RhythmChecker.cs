@@ -1,11 +1,12 @@
-﻿using System;
+﻿using LightFeather.Extensions;
+using Microsoft.Office.Interop.Word;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using LightFeather.Extensions;
-using Microsoft.Office.Interop.Word;
+using System.Xml.Linq;
 
 namespace LightFeather.Features.Rhythm {
 	public class RhythmChecker {
@@ -13,32 +14,34 @@ namespace LightFeather.Features.Rhythm {
 		public static string PreviousParagraphText;
 		public static bool UseComments;
 		public static bool UseBackgroundChange;
-		private static Timer Timer;
+		private static Timer _timer;
 
 		public static void CheckRhythm() {
 			Debug.WriteLine("[Rhythm] Check rhythm started.");
-			var timer = new Timer
-			{
+			var timer = new Timer {
 				Interval = 300
 			};
 			timer.Tick += CheckRhythmInternal;
 			timer.Start();
-			Timer = timer;
+			_timer = timer;
 			Debug.WriteLine("[Rhythm] Timer started.");
 		}
 
 		public static void DisableCheckRhythm() {
-			if (Timer != null) {
-				Timer.Tick -= CheckRhythmInternal;
-				Timer.Stop();
-				Timer.Dispose();
+			if (_timer != null) {
+				_timer.Tick -= CheckRhythmInternal;
+				_timer.Stop();
+				_timer.Dispose();
 			}
+
 			CleanupChangedSentences();
 		}
 
 		private static void CheckRhythmInternal(object sender, EventArgs e) {
 			var currentSelection = Globals.ThisAddIn.Application.Selection;
 			if (currentSelection == null) return;
+
+			if (currentSelection.Text.Trim().Length  == 0) return;
 
 			var currentParagraph = currentSelection.Paragraphs[1];
 			if (PreviousParagraphText == null) {
@@ -68,6 +71,16 @@ namespace LightFeather.Features.Rhythm {
 					var sentenceToEdit = sentence.Trim();
 					MarkSentenceAsIncorrectRhythm(sentenceToEdit, count);
 				}
+				else {
+					if (UseComments) {
+						var changedSentence = new ChangedSentence
+						{
+							Sentence = sentence,
+							Comment = AddNeutralComment(sentence, count)
+						};
+						ChangedSentences.Add(changedSentence);
+					}
+				}
 
 				previousSentenceWordCount = count;
 			}
@@ -76,19 +89,34 @@ namespace LightFeather.Features.Rhythm {
 		}
 
 		private static void MarkSentenceAsIncorrectRhythm(Range sentence, int count) {
-			var changedSentence = new ChangedSentence() { Sentence = sentence };
+			var changedSentence = new ChangedSentence() {
+				Sentence = sentence
+			};
 			if (UseBackgroundChange) changedSentence.PreviousBackgroundColor = ChangeBackgroundColor(sentence);
+
 			if (UseComments) {
-				changedSentence.Comment = AddComment(sentence, count);
 				changedSentence.PreviousUnderline = sentence.Underline;
 				sentence.Underline = WdUnderline.wdUnderlineWavyHeavy;
+				changedSentence.Comment = AddIncorrectRhythmComment(sentence, count);
 			}
+
 			ChangedSentences.Add(changedSentence);
 		}
 
-		private static Comment AddComment(Range sentence, int count) {
-			object text = $"{count.ToString()} - {sentence.Text}";
-			var comment = GetActiveDocument().Comments.Add(sentence, ref text);
+		private static Comment AddNeutralComment(Range sentence, int count) {
+			var text = $"{count.ToString()} - {sentence.Text}";
+			return AddComment(sentence, text);
+		}
+
+		private static Comment AddIncorrectRhythmComment(Range sentence, int count)
+		{
+			var text = $"⚠️ {count.ToString()} - {sentence.Text}";
+			return AddComment(sentence, text);
+		}
+
+		private static Comment AddComment(Range sentence, string text) {
+			object textObject = text;
+			var comment = GetActiveDocument().Comments.Add(sentence, ref textObject);
 			comment.ShowTip = true;
 			comment.Author = GetCommentAuthor();
 			return comment;
@@ -130,16 +158,14 @@ namespace LightFeather.Features.Rhythm {
 			ChangedSentences.Clear();
 		}
 
-		private static void SafeDeleteComment(Comment comment)
-		{
+		private static void SafeDeleteComment(Comment comment) {
 			if (comment is null)
 				return;
 
-			try
-			{
+			try {
 				comment?.DeleteRecursively();
-			} catch (Exception e)
-			{
+			}
+			catch (Exception e) {
 				Debug.WriteLine($"Error: {e}");
 			}
 		}
