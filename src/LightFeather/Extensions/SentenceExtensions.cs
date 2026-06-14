@@ -1,4 +1,5 @@
-﻿using Microsoft.Office.Interop.Word;
+﻿using LightFeather.Features.Rhythm;
+using Microsoft.Office.Interop.Word;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -24,6 +25,10 @@ namespace LightFeather.Extensions {
 			var activeDocument = Globals.ThisAddIn.Application.ActiveDocument;
 			var trimmedSentence = activeDocument.Range(sentenceStart, sentenceEnd);
 			return trimmedSentence;
+		}
+
+		public static bool TextEqualTo(this Range sentence, Range otherSentence) {
+			return sentence.Trim().Text == otherSentence.Trim().Text;
 		}
 	}
 }

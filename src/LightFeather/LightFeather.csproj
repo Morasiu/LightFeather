@@ -211,6 +211,9 @@
     <Compile Include="Extensions\CommentsExtensions.cs" />
     <Compile Include="Extensions\SentenceExtensions.cs" />
     <Compile Include="Features\Rhythm\ChangedSentence.cs" />
+    <Compile Include="Features\Rhythm\CommentFactory.cs" />
+    <Compile Include="Features\Rhythm\RhythmConsts.cs" />
+    <Compile Include="Features\Rhythm\RhythmTimer.cs" />
     <Compile Include="LightFeather.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -243,6 +246,7 @@
     </Compile>
     <Compile Include="Features\Rhythm\RhythmChecker.cs" />
     <Compile Include="Shared\CommentConsts.cs" />
+    <Compile Include="Shared\CurrentDocument.cs" />
     <Compile Include="ThisAddIn.cs">
       <SubType>Code</SubType>
     </Compile>
