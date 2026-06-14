@@ -13,22 +13,30 @@ namespace LightFeather.Features.Rhythm {
 		public static string PreviousParagraphText;
 		public static bool UseComments;
 		public static bool UseBackgroundChange;
+		private static Timer Timer;
 
 		public static void CheckRhythm() {
 			Debug.WriteLine("[Rhythm] Check rhythm started.");
-			var timer = new Timer {
+			var timer = new Timer
+			{
 				Interval = 300
 			};
-			timer.Tick += (o, e) => CheckRhythmInternal();
+			timer.Tick += CheckRhythmInternal;
 			timer.Start();
+			Timer = timer;
 			Debug.WriteLine("[Rhythm] Timer started.");
 		}
 
 		public static void DisableCheckRhythm() {
+			if (Timer != null) {
+				Timer.Tick -= CheckRhythmInternal;
+				Timer.Stop();
+				Timer.Dispose();
+			}
 			CleanupChangedSentences();
 		}
 
-		private static void CheckRhythmInternal() {
+		private static void CheckRhythmInternal(object sender, EventArgs e) {
 			var currentSelection = Globals.ThisAddIn.Application.Selection;
 			if (currentSelection == null) return;
 
@@ -65,7 +73,7 @@ namespace LightFeather.Features.Rhythm {
 					continue;
 
 				if (IsIncorrectRhythm(previousSentenceWordCount, count)) {
-					var sentenceToEdit = GetTrimmedSentence(sentence);
+					var sentenceToEdit = sentence.Trim();
 					MarkSentenceAsIncorrectRhythm(sentenceToEdit, count);
 				}
 
@@ -73,16 +81,6 @@ namespace LightFeather.Features.Rhythm {
 			}
 
 			Debug.WriteLine("[Rhythm] Internal check. Sentences changed: " + ChangedSentences.Count);
-		}
-
-		private static Range GetTrimmedSentence(Range sentence) {
-			var sentenceToEdit = sentence;
-			if (sentence.Text.EndsWith("\r"))
-			{
-				var trimmedRange = GetActiveDocument().Range(sentence.Start, sentence.End - 1);
-				sentenceToEdit = trimmedRange;
-			}
-			return sentenceToEdit;
 		}
 
 		private static void MarkSentenceAsIncorrectRhythm(Range sentenceToEdit, int count) {
@@ -164,8 +162,9 @@ namespace LightFeather.Features.Rhythm {
 					paragraph.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
 
 				foreach (Range sentence in paragraph.Range.Sentences) {
-					if (sentence.Shading.BackgroundPatternColor == GetRhythmCheckerBackgroundColor())
-						sentence.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
+					var trimmedSentence = sentence.Trim();
+					if (trimmedSentence.Shading.BackgroundPatternColor == GetRhythmCheckerBackgroundColor())
+						trimmedSentence.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
 				}
 			}
 

@@ -8,5 +8,17 @@ namespace LightFeather.Extensions {
 		{
 			return sentence.Words.Cast<Range>().Where(x => x.Text.Trim().Length > 0 && !char.IsPunctuation(x.Text.Trim()[0])).Select(x => x);
 		}
+
+		public static Range Trim(this Range sentence)
+		{
+			var sentenceToEdit = sentence;
+			if (sentence.Text.EndsWith("\r"))
+			{
+				var activeDocument = Globals.ThisAddIn.Application.ActiveDocument;
+				var trimmedRange = activeDocument.Range(sentence.Start, sentence.End - 1);
+				sentenceToEdit = trimmedRange;
+			}
+			return sentenceToEdit;
+		}
 	}
 }
