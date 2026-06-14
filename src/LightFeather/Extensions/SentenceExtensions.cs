@@ -6,11 +6,13 @@ namespace LightFeather.Extensions {
 	public static class SentenceExtensions {
 		public static IEnumerable<Range> GetActualWordsFromSentence(this Range sentence)
 		{
-			return sentence.Words.Cast<Range>().Where(x => x.Text.Trim().Length > 0 && !char.IsPunctuation(x.Text.Trim()[0])).Select(x => x);
+			return sentence?.Words.Cast<Range>().Where(x => x.Text.Trim().Length > 0 && !char.IsPunctuation(x.Text.Trim()[0])).Select(x => x);
 		}
 
 		public static Range Trim(this Range sentence)
 		{
+			if (sentence == null) return null;
+			if (sentence.Text == null) return sentence;
 			var sentenceStart = sentence.Start;
 			var sentenceEnd = sentence.End;
 

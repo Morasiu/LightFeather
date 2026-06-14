@@ -5,13 +5,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using LightFeather.Shared;
 
 namespace LightFeather.Features.Rhythm {
 	public class RhythmChecker {
 		public static List<ChangedSentence> ChangedSentences = new List<ChangedSentence>();
 		public static string PreviousParagraphText;
+		public static Paragraph PreviousParagraph;
 		public static bool UseComments;
 		public static bool UseBackgroundChange;
 		private static Timer _timer;
@@ -19,7 +22,7 @@ namespace LightFeather.Features.Rhythm {
 		public static void CheckRhythm() {
 			Debug.WriteLine("[Rhythm] Check rhythm started.");
 			var timer = new Timer {
-				Interval = 300
+				Interval = 500
 			};
 			timer.Tick += CheckRhythmInternal;
 			timer.Start();
@@ -41,17 +44,27 @@ namespace LightFeather.Features.Rhythm {
 			var currentSelection = Globals.ThisAddIn.Application.Selection;
 			if (currentSelection == null) return;
 
-			if (currentSelection.Text.Trim().Length  == 0) return;
-
 			var currentParagraph = currentSelection.Paragraphs[1];
-			if (PreviousParagraphText == null) {
-				PreviousParagraphText = currentParagraph.Range.Text;
+			if (currentParagraph.Range.Text.Trim().Length == 0) return;
+			if (PreviousParagraph == null) {
+				PreviousParagraph = currentParagraph;
 			}
 
-			if (PreviousParagraphText != currentParagraph.Range.Text) {
-				Debug.WriteLine("[Rhythm] Paragraph changed");
+			if (PreviousParagraph.ParaID == currentParagraph.ParaID) {
+				if (currentParagraph.Range.Text == PreviousParagraphText) {
+					return;
+				}
+
+				Debug.WriteLine("[Rhythm] Same paragraph, but changed.");
+				CheckRhythmForParagraph(currentParagraph);
+
+				PreviousParagraphText = currentParagraph.Range.Text;
+			}
+			else {
+				Debug.WriteLine("[Rhythm] Selection switched to different paragraph");
 				CleanupChangedSentences();
 				CheckRhythmForParagraph(currentParagraph);
+				PreviousParagraph = currentParagraph;
 				PreviousParagraphText = currentParagraph.Range.Text;
 			}
 		}
@@ -67,18 +80,17 @@ namespace LightFeather.Features.Rhythm {
 				if (count == 0)
 					continue;
 
+				var sentenceToEdit = sentence.Trim();
 				if (IsIncorrectRhythm(previousSentenceWordCount, count)) {
-					var sentenceToEdit = sentence.Trim();
 					MarkSentenceAsIncorrectRhythm(sentenceToEdit, count);
 				}
 				else {
 					if (UseComments) {
-						var changedSentence = new ChangedSentence
-						{
-							Sentence = sentence,
-							Comment = AddNeutralComment(sentence, count)
+						var changedSentence = new ChangedSentence {
+							Sentence = sentenceToEdit,
+							Comment = AddNeutralComment(sentenceToEdit, count)
 						};
-						ChangedSentences.Add(changedSentence);
+						AddOrUpdateChangedSentence(changedSentence);
 					}
 				}
 
@@ -86,6 +98,31 @@ namespace LightFeather.Features.Rhythm {
 			}
 
 			Debug.WriteLine("[Rhythm] Internal check. Sentences changed: " + ChangedSentences.Count);
+		}
+
+		private static void AddOrUpdateChangedSentence(ChangedSentence changedSentence) {
+			var existingChangedSentence =
+				ChangedSentences.FirstOrDefault(x => x.Sentence.Trim().Text == changedSentence.Sentence.Trim().Text);
+			if (existingChangedSentence == null) {
+				ChangedSentences.Add(changedSentence);
+			}
+			else {
+				if (changedSentence.PreviousBackgroundColor == null) {
+					SafeCleanBackgroundColor(existingChangedSentence);
+				}
+
+				existingChangedSentence.PreviousBackgroundColor = changedSentence.PreviousBackgroundColor;
+
+				if (changedSentence.PreviousUnderline == null) {
+					SafeCleanUnderline(existingChangedSentence);
+				}
+
+				existingChangedSentence.PreviousUnderline = changedSentence.PreviousUnderline;
+
+				if (changedSentence.Comment == null) SafeDeleteComment(existingChangedSentence.Comment);
+
+				existingChangedSentence.Comment = changedSentence.Comment;
+			}
 		}
 
 		private static void MarkSentenceAsIncorrectRhythm(Range sentence, int count) {
@@ -100,7 +137,7 @@ namespace LightFeather.Features.Rhythm {
 				changedSentence.Comment = AddIncorrectRhythmComment(sentence, count);
 			}
 
-			ChangedSentences.Add(changedSentence);
+			AddOrUpdateChangedSentence(changedSentence);
 		}
 
 		private static Comment AddNeutralComment(Range sentence, int count) {
@@ -108,27 +145,48 @@ namespace LightFeather.Features.Rhythm {
 			return AddComment(sentence, text);
 		}
 
-		private static Comment AddIncorrectRhythmComment(Range sentence, int count)
-		{
+		private static Comment AddIncorrectRhythmComment(Range sentence, int count) {
 			var text = $"⚠️ {count.ToString()} - {sentence.Text}";
 			return AddComment(sentence, text);
 		}
 
 		private static Comment AddComment(Range sentence, string text) {
-			object textObject = text;
-			var comment = GetActiveDocument().Comments.Add(sentence, ref textObject);
-			comment.ShowTip = true;
-			comment.Author = GetCommentAuthor();
-			return comment;
+			var weirdComments = sentence.Comments.GetMadeByLightFeather().ToList();
+			var startIndexes = weirdComments.Select(x => new { x.Scope.Start, x.Scope.Text });
+			var currentStart = sentence.Start;
+			var oldComments = sentence.Comments
+				.GetMadeByLightFeather()
+				.Where(x => x.Scope.Start == sentence.Start)
+				.ToList();
+			if (!oldComments.Any()) {
+				object textObject = text;
+				var comment = GetActiveDocument().Comments.Add(sentence, ref textObject);
+				comment.ShowTip = true;
+				comment.Author = CommentConsts.AuthorName;
+				comment.Initial = "LF";
+				return comment;
+			}
+			else {
+				var previousComment = oldComments.First();
+				previousComment.Range.Text = text;
+
+				foreach (Comment comment in sentence.Comments) {
+					var allSentencesInParagraph =
+						sentence.Paragraphs.First.Range.Sentences.OfType<Range>().Select(x => x.Trim());
+					if (allSentencesInParagraph.All(x => x.Start != comment.Scope.Start)) {
+						SafeDeleteComment(comment);
+					}
+				}
+
+				return previousComment;
+			}
 		}
 
 		private static Document GetActiveDocument() {
 			return Globals.ThisAddIn.Application.ActiveDocument;
 		}
 
-		private static string GetCommentAuthor() {
-			return"Light Feather";
-		}
+
 
 		private static bool IsIncorrectRhythm(int previousSentenceWordCount, int count) {
 			if (previousSentenceWordCount == 0) return false;
@@ -161,22 +219,24 @@ namespace LightFeather.Features.Rhythm {
 		private static void SafeDeleteComment(Comment comment) {
 			if (comment is null)
 				return;
-
 			try {
-				comment?.DeleteRecursively();
+				if (comment.Done) return;
+				comment?.Delete();
 			}
-			catch (Exception e) {
+			catch (COMException e) {
 				Debug.WriteLine($"Error: {e}");
 			}
 		}
 
 		private static void SafeCleanUnderline(ChangedSentence changedSentence) {
+			if (changedSentence.PreviousUnderline == null) return;
+
 			try {
 				if (changedSentence.Sentence.Underline == WdUnderline.wdUnderlineWavyHeavy) {
 					changedSentence.Sentence.Underline = changedSentence.PreviousUnderline.Value;
 				}
 			}
-			catch (Exception e) {
+			catch (COMException e) {
 				Debug.WriteLine($"Error: {e}");
 			}
 		}
@@ -189,7 +249,7 @@ namespace LightFeather.Features.Rhythm {
 					changedSentence.Sentence.Underline = WdUnderline.wdUnderlineNone;
 				}
 			}
-			catch (Exception e) {
+			catch (COMException e) {
 				Debug.WriteLine($"Error: {e}");
 			}
 		}
@@ -217,8 +277,7 @@ namespace LightFeather.Features.Rhythm {
 		}
 
 		private static void CleanAllLeftoverComments() {
-			foreach (var comment in Globals.ThisAddIn.Application.ActiveDocument.Comments.Cast<Comment>()
-				         .Where(comment => comment.Author == GetCommentAuthor())) {
+			foreach (var comment in Globals.ThisAddIn.Application.ActiveDocument.Comments.GetMadeByLightFeather()) {
 				SafeDeleteComment(comment);
 			}
 		}
