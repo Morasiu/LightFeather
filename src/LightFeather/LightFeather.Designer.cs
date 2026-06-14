@@ -38,21 +38,28 @@
 			this.RhythmGroup = this.Factory.CreateRibbonGroup();
 			this.rhythmCheckbox = this.Factory.CreateRibbonCheckBox();
 			this.About = this.Factory.CreateRibbonButton();
+			this.useCommentCheckbox = this.Factory.CreateRibbonCheckBox();
+			this.useBackgroundChangeCheckbox = this.Factory.CreateRibbonCheckBox();
+			this.group1 = this.Factory.CreateRibbonGroup();
+			this.cleanRhythmChecks = this.Factory.CreateRibbonButton();
 			this.tab1.SuspendLayout();
 			this.RhythmGroup.SuspendLayout();
+			this.group1.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// tab1
 			// 
 			this.tab1.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Office;
 			this.tab1.Groups.Add(this.RhythmGroup);
+			this.tab1.Groups.Add(this.group1);
 			this.tab1.Label = "Light Feather";
 			this.tab1.Name = "tab1";
 			// 
 			// RhythmGroup
 			// 
 			this.RhythmGroup.Items.Add(this.rhythmCheckbox);
-			this.RhythmGroup.Items.Add(this.About);
+			this.RhythmGroup.Items.Add(this.useCommentCheckbox);
+			this.RhythmGroup.Items.Add(this.useBackgroundChangeCheckbox);
 			this.RhythmGroup.Label = "Rytm";
 			this.RhythmGroup.Name = "RhythmGroup";
 			// 
@@ -68,6 +75,31 @@
 			this.About.Name = "About";
 			this.About.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.About_Click);
 			// 
+			// useCommentCheckbox
+			// 
+			this.useCommentCheckbox.Label = "Użyj komentarzy";
+			this.useCommentCheckbox.Name = "useCommentCheckbox";
+			this.useCommentCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.useCommentCheckbox_Click);
+			// 
+			// useBackgroundChangeCheckbox
+			// 
+			this.useBackgroundChangeCheckbox.Label = "Użyj zmiany tła";
+			this.useBackgroundChangeCheckbox.Name = "useBackgroundChangeCheckbox";
+			this.useBackgroundChangeCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.checkBox1_Click);
+			// 
+			// group1
+			// 
+			this.group1.Items.Add(this.cleanRhythmChecks);
+			this.group1.Items.Add(this.About);
+			this.group1.Label = "Pomoc";
+			this.group1.Name = "group1";
+			// 
+			// cleanRhythmChecks
+			// 
+			this.cleanRhythmChecks.Label = "Wyczyść sprawdzenie";
+			this.cleanRhythmChecks.Name = "cleanRhythmChecks";
+			this.cleanRhythmChecks.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.cleanRhythmChecks_Click);
+			// 
 			// LightFeather
 			// 
 			this.Name = "LightFeather";
@@ -78,6 +110,8 @@
 			this.tab1.PerformLayout();
 			this.RhythmGroup.ResumeLayout(false);
 			this.RhythmGroup.PerformLayout();
+			this.group1.ResumeLayout(false);
+			this.group1.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -88,6 +122,10 @@
 		internal Microsoft.Office.Tools.Ribbon.RibbonGroup RhythmGroup;
 		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox rhythmCheckbox;
 		internal Microsoft.Office.Tools.Ribbon.RibbonButton About;
+		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox useCommentCheckbox;
+		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox useBackgroundChangeCheckbox;
+		internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
+		internal Microsoft.Office.Tools.Ribbon.RibbonButton cleanRhythmChecks;
 	}
 
 	partial class ThisRibbonCollection

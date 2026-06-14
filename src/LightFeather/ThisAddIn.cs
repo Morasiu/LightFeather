@@ -7,6 +7,7 @@ using Word = Microsoft.Office.Interop.Word;
 using Office = Microsoft.Office.Core;
 using Microsoft.Office.Tools.Word;
 using System.Windows.Forms;
+using LightFeather.Features.Rhythm;
 using Microsoft.Office.Interop.Word;
 
 namespace LightFeather
@@ -20,7 +21,7 @@ namespace LightFeather
 
 		private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
-            RhythmChecker.DisableCheckRhtyhm();
+            RhythmChecker.DisableCheckRhythm();
         }
 
         #region Kod wygenerowany przez program VSTO
