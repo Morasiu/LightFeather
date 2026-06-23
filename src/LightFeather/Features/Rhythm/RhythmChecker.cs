@@ -124,8 +124,8 @@ namespace LightFeather.Features.Rhythm {
 		}
 
 		private static void AddOrUpdateChangedSentence(ChangedSentence changedSentence) {
-			var existingChangedSentence = ChangedSentences.
-				FirstOrDefault(x => x.Sentence.TextEqualTo(changedSentence.Sentence));
+			var existingChangedSentence =
+				ChangedSentences.FirstOrDefault(x => x.Sentence.TextEqualTo(changedSentence.Sentence));
 			if (existingChangedSentence == null) {
 				ChangedSentences.Add(changedSentence);
 			}
@@ -156,7 +156,7 @@ namespace LightFeather.Features.Rhythm {
 			AddOrUpdateChangedSentence(changedSentence);
 		}
 
-		
+
 		private static bool IsIncorrectRhythm(int previousSentenceWordCount, int count) {
 			if (previousSentenceWordCount == 0) return false;
 			var difference = Math.Abs(previousSentenceWordCount - count);
@@ -180,7 +180,6 @@ namespace LightFeather.Features.Rhythm {
 
 			ChangedSentences.Clear();
 		}
-
 
 
 		private static void CleanAllLeftoverComments() {
