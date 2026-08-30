@@ -1,18 +1,16 @@
 ﻿using LightFeather.Extensions;
-using Microsoft.Office.Interop.Word;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using System.Xml.Linq;
+using System.Threading;
+using LightFeather;
+using LightFeather.Log;
 using LightFeather.Shared;
+using Microsoft.Office.Interop.Word;
 
 namespace LightFeather.Features.Rhythm {
 	public class RhythmChecker {
-		public static List<ChangedSentence> ChangedSentences = new List<ChangedSentence>();
+		public static ChangedSentences ChangedSentences = new ChangedSentences();
 		public static string PreviousParagraphText;
 		public static Paragraph PreviousParagraph;
 		public static bool UseComments;
@@ -21,53 +19,25 @@ namespace LightFeather.Features.Rhythm {
 		private static readonly RhythmTimer Timer = new RhythmTimer();
 
 		public static void CheckRhythm() {
-			Debug.WriteLine("[Rhythm] Check rhythm started.");
+			Debug.WriteLine("Check rhythm started.", LogCategories.Rhythm);
 
 			Timer.Start(CheckRhythmInternal);
-
-			Debug.WriteLine("[Rhythm] Timer started.");
 		}
 
 		public static void DisableCheckRhythm() {
 			Timer.Stop();
 
-			CleanupChangedSentences();
+			ChangedSentences.CleanupChangedSentences();
 		}
 
 		public static void CleanAllLeftovers() {
-			CleanLeftoverTextStyleManipulation();
-			CleanAllLeftoverComments();
-		}
-
-		private static void CleanLeftoverTextStyleManipulation() {
-			var document = CurrentDocument.GetActiveDocument();
-			foreach (Paragraph paragraph in document.Paragraphs) {
-				CleanLeftoverTextStyleManipulationInParagraph(paragraph);
-			}
-		}
-
-		private static void CleanLeftoverTextStyleManipulationInParagraph(Paragraph paragraph) {
-			foreach (Range sentence in paragraph.Range.Sentences) {
-				var trimmedSentence = sentence.Trim();
-
-				CleanLeftoverBackgroundColorManipulation(trimmedSentence);
-				CleanLeftoverUnderlineManipulation(trimmedSentence);
-			}
-		}
-
-		private static void CleanLeftoverUnderlineManipulation(Range trimmedSentence) {
-			if (trimmedSentence.Underline != WdUnderline.wdUnderlineWavyHeavy) return;
-
-			trimmedSentence.Underline = WdUnderline.wdUnderlineNone;
-		}
-
-		private static void CleanLeftoverBackgroundColorManipulation(Range trimmedSentence) {
-			if (trimmedSentence.Shading.BackgroundPatternColor != RhythmConsts.IncorrectRhythmBackgroundColor) return;
-
-			trimmedSentence.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
+			var undoAction = new UndoAction("Light feather - leftover cleanup");
+			RhythmCleaner.CleanAll();
+			undoAction.Dispose();
 		}
 
 		private static void CheckRhythmInternal(object sender, EventArgs e) {
+			var stopWatch = Stopwatch.StartNew();
 			var currentSelection = CurrentDocument.GetCurrentSelection();
 			if (currentSelection == null) return;
 
@@ -79,21 +49,26 @@ namespace LightFeather.Features.Rhythm {
 			if (PreviousParagraph.ParaID == currentParagraph.ParaID) {
 				if (currentParagraph.Range.Text == PreviousParagraphText) return;
 
-				Debug.WriteLine("[Rhythm] Same paragraph, but changed.");
+				Debug.WriteLine("Same paragraph, but changed.", LogCategories.Rhythm);
 				CheckRhythmForParagraph(currentParagraph);
 			}
 			else {
-				Debug.WriteLine("[Rhythm] Selection switched to different paragraph");
-				CleanupChangedSentences();
+				Debug.WriteLine("Selection switched to different paragraph", LogCategories.Rhythm);
+				ChangedSentences.CleanupChangedSentences();
 				CheckRhythmForParagraph(currentParagraph);
 				PreviousParagraph = currentParagraph;
 			}
 
 			PreviousParagraphText = currentParagraph.Range.Text;
+			stopWatch.Stop();
+			Debug.WriteLine($"Check rhythm took {stopWatch.ElapsedMilliseconds}ms", LogCategories.Rhythm);
 		}
 
 		private static void CheckRhythmForParagraph(Paragraph paragraph) {
+			var stopWatch = Stopwatch.StartNew();
 			var previousSentenceWordCount = 0;
+
+			var undoAction = new UndoAction("Light Feather - Rhythm check");
 
 			foreach (Range sentence in paragraph.Range.Sentences) {
 				if (sentence?.Text == null || !sentence.Text.Trim().Any())
@@ -113,32 +88,16 @@ namespace LightFeather.Features.Rhythm {
 							Sentence = sentenceToEdit,
 							Comment = CommentFactory.AddNeutralComment(sentenceToEdit, wordCount)
 						};
-						AddOrUpdateChangedSentence(changedSentence);
+						ChangedSentences.AddOrUpdate(changedSentence);
 					}
 				}
 
 				previousSentenceWordCount = wordCount;
 			}
 
-			Debug.WriteLine("[Rhythm] Internal check. Sentences changed: " + ChangedSentences.Count);
-		}
-
-		private static void AddOrUpdateChangedSentence(ChangedSentence changedSentence) {
-			var existingChangedSentence =
-				ChangedSentences.FirstOrDefault(x => x.Sentence.TextEqualTo(changedSentence.Sentence));
-			if (existingChangedSentence == null) {
-				ChangedSentences.Add(changedSentence);
-			}
-			else {
-				if (changedSentence.PreviousBackgroundColor == null) changedSentence.SafeCleanBackgroundColor();
-				existingChangedSentence.PreviousBackgroundColor = changedSentence.PreviousBackgroundColor;
-
-				if (changedSentence.PreviousUnderline == null) existingChangedSentence.SafeCleanUnderline();
-				existingChangedSentence.PreviousUnderline = changedSentence.PreviousUnderline;
-
-				if (changedSentence.Comment == null) existingChangedSentence.Comment.SafeDelete();
-				existingChangedSentence.Comment = changedSentence.Comment;
-			}
+			undoAction.Dispose();
+			stopWatch.Stop();
+			Debug.WriteLine($"Internal check. Sentences changed: {ChangedSentences.Log.Count}. Took: {stopWatch.ElapsedMilliseconds}ms", LogCategories.Rhythm);
 		}
 
 		private static void MarkSentenceAsIncorrectRhythm(Range sentence, int count) {
@@ -153,9 +112,9 @@ namespace LightFeather.Features.Rhythm {
 				changedSentence.Comment = CommentFactory.AddIncorrectRhythmComment(sentence, count);
 			}
 
-			AddOrUpdateChangedSentence(changedSentence);
-		}
 
+			ChangedSentences.AddOrUpdate(changedSentence);
+		}
 
 		private static bool IsIncorrectRhythm(int previousSentenceWordCount, int count) {
 			if (previousSentenceWordCount == 0) return false;
@@ -167,25 +126,6 @@ namespace LightFeather.Features.Rhythm {
 			var previousBackgroundColor = sentence.Shading.BackgroundPatternColor;
 			sentence.Shading.BackgroundPatternColor = RhythmConsts.IncorrectRhythmBackgroundColor;
 			return previousBackgroundColor;
-		}
-
-		private static void CleanupChangedSentences() {
-			Debug.WriteLine("[Rhythm] Cleanup started.");
-
-			foreach (var changedSentence in ChangedSentences) {
-				changedSentence.SafeCleanBackgroundColor();
-				changedSentence.SafeCleanUnderline();
-				changedSentence.Comment.SafeDelete();
-			}
-
-			ChangedSentences.Clear();
-		}
-
-
-		private static void CleanAllLeftoverComments() {
-			foreach (var comment in CurrentDocument.GetActiveDocument().Comments.FilterMadeByLightFeather()) {
-				comment.SafeDelete();
-			}
 		}
 	}
 }

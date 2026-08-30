@@ -18,7 +18,7 @@ namespace LightFeather.Features.Rhythm {
 
 		private static Comment AddComment(Range sentence, string text) {
 			var oldComments = sentence.Comments
-				.GetMadeByLightFeather()
+				.FilterMadeByLightFeather()
 				.Where(x => x.Scope.Start == sentence.Start)
 				.ToList();
 			if (!oldComments.Any()) {

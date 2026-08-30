@@ -37,11 +37,11 @@
 			this.tab1 = this.Factory.CreateRibbonTab();
 			this.RhythmGroup = this.Factory.CreateRibbonGroup();
 			this.rhythmCheckbox = this.Factory.CreateRibbonCheckBox();
-			this.About = this.Factory.CreateRibbonButton();
 			this.useCommentCheckbox = this.Factory.CreateRibbonCheckBox();
 			this.useBackgroundChangeCheckbox = this.Factory.CreateRibbonCheckBox();
 			this.group1 = this.Factory.CreateRibbonGroup();
 			this.cleanRhythmChecks = this.Factory.CreateRibbonButton();
+			this.About = this.Factory.CreateRibbonButton();
 			this.tab1.SuspendLayout();
 			this.RhythmGroup.SuspendLayout();
 			this.group1.SuspendLayout();
@@ -65,15 +65,10 @@
 			// 
 			// rhythmCheckbox
 			// 
+			this.rhythmCheckbox.Checked = true;
 			this.rhythmCheckbox.Label = "Włącz sprawdzenie rytmu";
 			this.rhythmCheckbox.Name = "rhythmCheckbox";
 			this.rhythmCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.rythmCheckbox_Click);
-			// 
-			// About
-			// 
-			this.About.Label = "O LightFeather";
-			this.About.Name = "About";
-			this.About.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.About_Click);
 			// 
 			// useCommentCheckbox
 			// 
@@ -99,6 +94,12 @@
 			this.cleanRhythmChecks.Label = "Wyczyść sprawdzenie";
 			this.cleanRhythmChecks.Name = "cleanRhythmChecks";
 			this.cleanRhythmChecks.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.cleanRhythmChecks_Click);
+			// 
+			// About
+			// 
+			this.About.Label = "O LightFeather";
+			this.About.Name = "About";
+			this.About.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.About_Click);
 			// 
 			// LightFeather
 			// 

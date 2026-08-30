@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace LightFeather.Extensions {
 	public static class CommentsExtensions {
-		public static IEnumerable<Comment> GetMadeByLightFeather(this Comments comments) {
+		public static IEnumerable<Comment> FilterMadeByLightFeather(this Comments comments) {
 			return comments
 				.OfType<Comment>()
 				.Where(comment => comment.Author == CommentConsts.AuthorName);
@@ -19,10 +19,11 @@ namespace LightFeather.Extensions {
 			try {
 				if (comment.Done)
 					return;
+
 				comment?.Delete();
 			}
-			catch (COMException e) {
-				Debug.WriteLine($"Error: {e}");
+			catch (COMException) {
+				//ignore
 			}
 		}
 	}
