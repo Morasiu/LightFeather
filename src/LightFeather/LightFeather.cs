@@ -4,7 +4,9 @@ using LightFeather.Features.Rhythm;
 
 namespace LightFeather {
 	public partial class LightFeather {
-		private void LightFeather_Load(object sender, RibbonUIEventArgs e) { }
+		private void LightFeather_Load(object sender, RibbonUIEventArgs e) {
+			if (rhythmCheckbox.Checked) RhythmChecker.CheckRhythm();
+		}
 
 		private void rythmCheckbox_Click(object sender, RibbonControlEventArgs e) {
 			if (rhythmCheckbox.Checked) {
@@ -22,15 +24,15 @@ namespace LightFeather {
 			MessageBox.Show(text, "O Light Feather");
 		}
 
-		private void useCommentCheckbox_Click(object sender, RibbonControlEventArgs e) {
-			RhythmChecker.DisableCheckRhythm();
-			RhythmChecker.UseComments = useCommentCheckbox.Checked;
-			if (rhythmCheckbox.Checked) RhythmChecker.CheckRhythm();
-		}
+		private void showPanelCheckbox_Click(object sender, RibbonControlEventArgs e) {
+			RhythmChecker.UsePanel = showPanelCheckbox.Checked;
 
+			if (!showPanelCheckbox.Checked) {
+				RhythmChecker.ClosePanel();
+				return;
+			}
 
-		private void cleanRhythmChecks_Click(object sender, RibbonControlEventArgs e) {
-			RhythmChecker.CleanAllLeftovers();
+			if (rhythmCheckbox.Checked) RhythmChecker.OpenPanel();
 		}
 	}
 }

@@ -1,22 +1,29 @@
-﻿using LightFeather.Extensions;
+using LightFeather.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using LightFeather.Features.Rhythm.Panel;
 using LightFeather.Log;
 using LightFeather.Shared;
 using Microsoft.Office.Interop.Word;
 
 namespace LightFeather.Features.Rhythm {
 	public class RhythmChecker {
-		public static ChangedSentences ChangedSentences = new ChangedSentences();
 		public static string PreviousParagraphText;
 		public static Paragraph PreviousParagraph;
-		public static bool UseComments;
+		public static bool UsePanel;
 
 		private static readonly RhythmTimer Timer = new RhythmTimer();
 
+		private static RhythmPanel _panel;
+
 		public static void CheckRhythm() {
 			Debug.WriteLine("Check rhythm started.", LogCategories.Rhythm);
+
+			if (UsePanel) {
+				OpenPanel();
+			}
 
 			Timer.Start(CheckRhythmInternal);
 		}
@@ -24,13 +31,29 @@ namespace LightFeather.Features.Rhythm {
 		public static void DisableCheckRhythm() {
 			Timer.Stop();
 
-			ChangedSentences.CleanupChangedSentences();
+			ClosePanel();
 		}
 
-		public static void CleanAllLeftovers() {
-			var undoAction = new UndoAction("Light feather - leftover cleanup");
-			RhythmCleaner.CleanAll();
-			undoAction.Dispose();
+		public static void OpenPanel() {
+			if (_panel != null)
+				return;
+
+			_panel = new RhythmPanel();
+			_panel.FormClosed += (sender, args) => _panel = null;
+
+			_panel.Show();
+			_panel.AttachTo(CurrentDocument.GetApplication().ActiveWindow.GetOwnerHandle());
+
+			PreviousParagraphText = null;
+		}
+
+		public static void ClosePanel() {
+			if (_panel == null)
+				return;
+
+			_panel?.Close();
+			_panel?.Dispose();
+			_panel = null;
 		}
 
 		private static void CheckRhythmInternal(object sender, EventArgs e) {
@@ -51,7 +74,6 @@ namespace LightFeather.Features.Rhythm {
 			}
 			else {
 				Debug.WriteLine("Selection switched to different paragraph", LogCategories.Rhythm);
-				ChangedSentences.CleanupChangedSentences();
 				CheckRhythmForParagraph(currentParagraph);
 				PreviousParagraph = currentParagraph;
 			}
@@ -64,8 +86,7 @@ namespace LightFeather.Features.Rhythm {
 		private static void CheckRhythmForParagraph(Paragraph paragraph) {
 			var stopWatch = Stopwatch.StartNew();
 			var previousSentenceWordCount = 0;
-
-			var undoAction = new UndoAction("Light Feather - Rhythm check");
+			var sentenceRhythms = new List<SentenceRhythm>();
 
 			foreach (Range sentence in paragraph.Range.Sentences) {
 				if (sentence?.Text == null || !sentence.Text.Trim().Any())
@@ -75,44 +96,19 @@ namespace LightFeather.Features.Rhythm {
 				if (wordCount == 0)
 					continue;
 
-				var sentenceToEdit = sentence.Trim();
-				if (IsIncorrectRhythm(previousSentenceWordCount, wordCount)) {
-					MarkSentenceAsIncorrectRhythm(sentenceToEdit, wordCount);
-					
-				}
-				else {
-					if (UseComments) {
-						var changedSentence = new ChangedSentence {
-							Sentence = sentenceToEdit,
-							Comment = CommentFactory.AddNeutralComment(sentenceToEdit, wordCount)
-						};
-						ChangedSentences.AddOrUpdate(changedSentence);
-					}
-				}
+				var incorrectRhythm = IsIncorrectRhythm(previousSentenceWordCount, wordCount);
+
+				sentenceRhythms.Add(new SentenceRhythm(sentence.Trim(), wordCount, incorrectRhythm));
 
 				previousSentenceWordCount = wordCount;
 			}
 
-			undoAction.Dispose();
+			_panel?.SetSentences(sentenceRhythms);
+
 			stopWatch.Stop();
 			Debug.WriteLine(
-				$"Internal check. Sentences changed: {ChangedSentences.Log.Count}. Took: {stopWatch.ElapsedMilliseconds}ms",
+				$"Internal check. Sentences: {sentenceRhythms.Count}. Took: {stopWatch.ElapsedMilliseconds}ms",
 				LogCategories.Rhythm);
-		}
-
-		private static void MarkSentenceAsIncorrectRhythm(Range sentence, int count) {
-			var changedSentence = new ChangedSentence {
-				Sentence = sentence
-			};
-
-			if (UseComments) {
-				changedSentence.PreviousUnderline = sentence.Underline;
-				sentence.Underline = WdUnderline.wdUnderlineWavyHeavy;
-				changedSentence.Comment = CommentFactory.AddIncorrectRhythmComment(sentence, count);
-			}
-
-
-			ChangedSentences.AddOrUpdate(changedSentence);
 		}
 
 		private static bool IsIncorrectRhythm(int previousSentenceWordCount, int count) {

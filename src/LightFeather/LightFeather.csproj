@@ -208,18 +208,15 @@
     can be found.
   -->
   <ItemGroup>
-    <Compile Include="Extensions\CommentsExtensions.cs" />
     <Compile Include="Extensions\SentenceExtensions.cs" />
-    <Compile Include="Features\Rhythm\Badge\BadgeManager.cs" />
-    <Compile Include="Features\Rhythm\Badge\WorldCountBadge.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Features\Rhythm\ChangedSentence.cs" />
-    <Compile Include="Features\Rhythm\ChangedSentences.cs" />
-    <Compile Include="Features\Rhythm\RhythmCleaner.cs" />
-    <Compile Include="Features\Rhythm\CommentFactory.cs" />
+    <Compile Include="Extensions\WindowExtensions.cs" />
     <Compile Include="Features\Rhythm\RhythmConsts.cs" />
     <Compile Include="Features\Rhythm\RhythmTimer.cs" />
+    <Compile Include="Features\Rhythm\Panel\RhythmPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Features\Rhythm\SentenceRhythm.cs" />
+    <Compile Include="Shared\WindowNative.cs" />
     <Compile Include="LightFeather.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -254,9 +251,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Features\Rhythm\RhythmChecker.cs" />
-    <Compile Include="Shared\CommentConsts.cs" />
     <Compile Include="Shared\CurrentDocument.cs" />
-    <Compile Include="Shared\UndoAction.cs" />
     <Compile Include="ThisAddIn.cs">
       <SubType>Code</SubType>
     </Compile>

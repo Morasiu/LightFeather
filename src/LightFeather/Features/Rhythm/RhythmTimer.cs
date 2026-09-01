@@ -9,7 +9,7 @@ namespace LightFeather.Features.Rhythm {
 		public RhythmTimer() {
 			if (_timer is null) {
 				_timer = new Timer {
-					Interval = 500
+					Interval = 200
 				};
 			}
 		}

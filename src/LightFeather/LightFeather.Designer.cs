@@ -37,9 +37,8 @@
 			this.tab1 = this.Factory.CreateRibbonTab();
 			this.RhythmGroup = this.Factory.CreateRibbonGroup();
 			this.rhythmCheckbox = this.Factory.CreateRibbonCheckBox();
-			this.useCommentCheckbox = this.Factory.CreateRibbonCheckBox();
+			this.showPanelCheckbox = this.Factory.CreateRibbonCheckBox();
 			this.group1 = this.Factory.CreateRibbonGroup();
-			this.cleanRhythmChecks = this.Factory.CreateRibbonButton();
 			this.About = this.Factory.CreateRibbonButton();
 			this.tab1.SuspendLayout();
 			this.RhythmGroup.SuspendLayout();
@@ -57,7 +56,7 @@
 			// RhythmGroup
 			// 
 			this.RhythmGroup.Items.Add(this.rhythmCheckbox);
-			this.RhythmGroup.Items.Add(this.useCommentCheckbox);
+			this.RhythmGroup.Items.Add(this.showPanelCheckbox);
 			this.RhythmGroup.Label = "Rytm";
 			this.RhythmGroup.Name = "RhythmGroup";
 			// 
@@ -67,26 +66,19 @@
 			this.rhythmCheckbox.Label = "Włącz sprawdzenie rytmu";
 			this.rhythmCheckbox.Name = "rhythmCheckbox";
 			this.rhythmCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.rythmCheckbox_Click);
-			// 
-			// useCommentCheckbox
-			// 
-			this.useCommentCheckbox.Label = "Użyj komentarzy";
-			this.useCommentCheckbox.Name = "useCommentCheckbox";
-			this.useCommentCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.useCommentCheckbox_Click);
-			// 
+			//
+			// showPanelCheckbox
+			//
+			this.showPanelCheckbox.Label = "Pokaż panel zdań";
+			this.showPanelCheckbox.Name = "showPanelCheckbox";
+			this.showPanelCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.showPanelCheckbox_Click);
+			//
 			// group1
 			// 
-			this.group1.Items.Add(this.cleanRhythmChecks);
 			this.group1.Items.Add(this.About);
 			this.group1.Label = "Pomoc";
 			this.group1.Name = "group1";
-			// 
-			// cleanRhythmChecks
-			// 
-			this.cleanRhythmChecks.Label = "Wyczyść sprawdzenie";
-			this.cleanRhythmChecks.Name = "cleanRhythmChecks";
-			this.cleanRhythmChecks.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.cleanRhythmChecks_Click);
-			// 
+			//
 			// About
 			// 
 			this.About.Label = "O LightFeather";
@@ -115,9 +107,8 @@
 		internal Microsoft.Office.Tools.Ribbon.RibbonGroup RhythmGroup;
 		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox rhythmCheckbox;
 		internal Microsoft.Office.Tools.Ribbon.RibbonButton About;
-		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox useCommentCheckbox;
+		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox showPanelCheckbox;
 		internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
-		internal Microsoft.Office.Tools.Ribbon.RibbonButton cleanRhythmChecks;
 	}
 
 	partial class ThisRibbonCollection

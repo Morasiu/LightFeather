@@ -28,9 +28,5 @@ namespace LightFeather.Extensions {
 			var trimmedSentence = activeDocument.Range(sentenceStart, sentenceEnd);
 			return trimmedSentence;
 		}
-
-		public static bool TextEqualTo(this Range sentence, Range otherSentence) {
-			return sentence.Trim().Text == otherSentence.Trim().Text;
-		}
 	}
 }
