@@ -103,7 +103,7 @@ namespace LightFeather.Features.Rhythm {
 				previousSentenceWordCount = wordCount;
 			}
 
-			_panel?.SetSentences(sentenceRhythms);
+			if (UsePanel) _panel?.SetSentences(sentenceRhythms);
 
 			stopWatch.Stop();
 			Debug.WriteLine(

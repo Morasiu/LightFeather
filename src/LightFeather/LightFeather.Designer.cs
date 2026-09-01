@@ -66,19 +66,19 @@
 			this.rhythmCheckbox.Label = "Włącz sprawdzenie rytmu";
 			this.rhythmCheckbox.Name = "rhythmCheckbox";
 			this.rhythmCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.rythmCheckbox_Click);
-			//
+			// 
 			// showPanelCheckbox
-			//
+			// 
 			this.showPanelCheckbox.Label = "Pokaż panel zdań";
 			this.showPanelCheckbox.Name = "showPanelCheckbox";
 			this.showPanelCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.showPanelCheckbox_Click);
-			//
+			// 
 			// group1
 			// 
 			this.group1.Items.Add(this.About);
 			this.group1.Label = "Pomoc";
 			this.group1.Name = "group1";
-			//
+			// 
 			// About
 			// 
 			this.About.Label = "O LightFeather";
