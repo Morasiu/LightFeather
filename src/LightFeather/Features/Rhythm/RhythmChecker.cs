@@ -2,8 +2,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using LightFeather;
 using LightFeather.Log;
 using LightFeather.Shared;
 using Microsoft.Office.Interop.Word;
@@ -14,7 +12,6 @@ namespace LightFeather.Features.Rhythm {
 		public static string PreviousParagraphText;
 		public static Paragraph PreviousParagraph;
 		public static bool UseComments;
-		public static bool UseBackgroundChange;
 
 		private static readonly RhythmTimer Timer = new RhythmTimer();
 
@@ -81,6 +78,7 @@ namespace LightFeather.Features.Rhythm {
 				var sentenceToEdit = sentence.Trim();
 				if (IsIncorrectRhythm(previousSentenceWordCount, wordCount)) {
 					MarkSentenceAsIncorrectRhythm(sentenceToEdit, wordCount);
+					
 				}
 				else {
 					if (UseComments) {
@@ -97,14 +95,15 @@ namespace LightFeather.Features.Rhythm {
 
 			undoAction.Dispose();
 			stopWatch.Stop();
-			Debug.WriteLine($"Internal check. Sentences changed: {ChangedSentences.Log.Count}. Took: {stopWatch.ElapsedMilliseconds}ms", LogCategories.Rhythm);
+			Debug.WriteLine(
+				$"Internal check. Sentences changed: {ChangedSentences.Log.Count}. Took: {stopWatch.ElapsedMilliseconds}ms",
+				LogCategories.Rhythm);
 		}
 
 		private static void MarkSentenceAsIncorrectRhythm(Range sentence, int count) {
-			var changedSentence = new ChangedSentence() {
+			var changedSentence = new ChangedSentence {
 				Sentence = sentence
 			};
-			if (UseBackgroundChange) changedSentence.PreviousBackgroundColor = ChangeBackgroundColor(sentence);
 
 			if (UseComments) {
 				changedSentence.PreviousUnderline = sentence.Underline;
@@ -120,12 +119,6 @@ namespace LightFeather.Features.Rhythm {
 			if (previousSentenceWordCount == 0) return false;
 			var difference = Math.Abs(previousSentenceWordCount - count);
 			return difference <= 2;
-		}
-
-		private static WdColor ChangeBackgroundColor(Range sentence) {
-			var previousBackgroundColor = sentence.Shading.BackgroundPatternColor;
-			sentence.Shading.BackgroundPatternColor = RhythmConsts.IncorrectRhythmBackgroundColor;
-			return previousBackgroundColor;
 		}
 	}
 }

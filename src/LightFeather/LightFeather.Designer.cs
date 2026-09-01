@@ -38,7 +38,6 @@
 			this.RhythmGroup = this.Factory.CreateRibbonGroup();
 			this.rhythmCheckbox = this.Factory.CreateRibbonCheckBox();
 			this.useCommentCheckbox = this.Factory.CreateRibbonCheckBox();
-			this.useBackgroundChangeCheckbox = this.Factory.CreateRibbonCheckBox();
 			this.group1 = this.Factory.CreateRibbonGroup();
 			this.cleanRhythmChecks = this.Factory.CreateRibbonButton();
 			this.About = this.Factory.CreateRibbonButton();
@@ -59,7 +58,6 @@
 			// 
 			this.RhythmGroup.Items.Add(this.rhythmCheckbox);
 			this.RhythmGroup.Items.Add(this.useCommentCheckbox);
-			this.RhythmGroup.Items.Add(this.useBackgroundChangeCheckbox);
 			this.RhythmGroup.Label = "Rytm";
 			this.RhythmGroup.Name = "RhythmGroup";
 			// 
@@ -75,12 +73,6 @@
 			this.useCommentCheckbox.Label = "Użyj komentarzy";
 			this.useCommentCheckbox.Name = "useCommentCheckbox";
 			this.useCommentCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.useCommentCheckbox_Click);
-			// 
-			// useBackgroundChangeCheckbox
-			// 
-			this.useBackgroundChangeCheckbox.Label = "Użyj zmiany tła";
-			this.useBackgroundChangeCheckbox.Name = "useBackgroundChangeCheckbox";
-			this.useBackgroundChangeCheckbox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.checkBox1_Click);
 			// 
 			// group1
 			// 
@@ -116,7 +108,7 @@
 			this.ResumeLayout(false);
 
 		}
-
+		
 		#endregion
 
 		internal Microsoft.Office.Tools.Ribbon.RibbonTab tab1;
@@ -124,7 +116,6 @@
 		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox rhythmCheckbox;
 		internal Microsoft.Office.Tools.Ribbon.RibbonButton About;
 		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox useCommentCheckbox;
-		internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox useBackgroundChangeCheckbox;
 		internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
 		internal Microsoft.Office.Tools.Ribbon.RibbonButton cleanRhythmChecks;
 	}

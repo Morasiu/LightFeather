@@ -28,11 +28,6 @@ namespace LightFeather {
 			if (rhythmCheckbox.Checked) RhythmChecker.CheckRhythm();
 		}
 
-		private void checkBox1_Click(object sender, RibbonControlEventArgs e) {
-			RhythmChecker.DisableCheckRhythm();
-			RhythmChecker.UseBackgroundChange = useBackgroundChangeCheckbox.Checked;
-			if (rhythmCheckbox.Checked) RhythmChecker.CheckRhythm();
-		}
 
 		private void cleanRhythmChecks_Click(object sender, RibbonControlEventArgs e) {
 			RhythmChecker.CleanAllLeftovers();

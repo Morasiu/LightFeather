@@ -210,6 +210,10 @@
   <ItemGroup>
     <Compile Include="Extensions\CommentsExtensions.cs" />
     <Compile Include="Extensions\SentenceExtensions.cs" />
+    <Compile Include="Features\Rhythm\Badge\BadgeManager.cs" />
+    <Compile Include="Features\Rhythm\Badge\WorldCountBadge.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Features\Rhythm\ChangedSentence.cs" />
     <Compile Include="Features\Rhythm\ChangedSentences.cs" />
     <Compile Include="Features\Rhythm\RhythmCleaner.cs" />
@@ -228,6 +232,8 @@
     </Compile>
     <EmbeddedResource Include="LightFeather.resx">
       <DependentUpon>LightFeather.cs</DependentUpon>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>LightFeather1.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

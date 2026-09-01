@@ -12,38 +12,42 @@ namespace LightFeather.Features.Rhythm {
 		public IReadOnlyCollection<ChangedSentence> Log => _changedSentenceList;
 
 		public void AddOrUpdate(ChangedSentence changedSentence) {
-			var existingChangedSentence =
-				_changedSentenceList.FirstOrDefault(x => x.Sentence.TextEqualTo(changedSentence.Sentence));
+			var existingChangedSentence = _changedSentenceList
+				.FirstOrDefault(x => x.Sentence.TextEqualTo(changedSentence.Sentence));
 			if (existingChangedSentence == null) {
 				_changedSentenceList.Add(changedSentence);
 			}
 			else {
-				if (changedSentence.PreviousBackgroundColor == null)
-					changedSentence.SafeCleanBackgroundColor();
-				existingChangedSentence.PreviousBackgroundColor = changedSentence.PreviousBackgroundColor;
-
-				if (changedSentence.PreviousUnderline == null)
-					existingChangedSentence.SafeCleanUnderline();
-				existingChangedSentence.PreviousUnderline = changedSentence.PreviousUnderline;
-
-				if (changedSentence.Comment == null)
-					existingChangedSentence.Comment.SafeDelete();
-				existingChangedSentence.Comment = changedSentence.Comment;
+				UpdateSentence(existingChangedSentence, changedSentence);
 			}
+		}
+
+		private static void UpdateSentence(ChangedSentence currentSentence, ChangedSentence updatedSentence) {
+			if (updatedSentence.PreviousUnderline == null) {
+				currentSentence.SafeCleanUnderline();
+			}
+			currentSentence.PreviousUnderline = updatedSentence.PreviousUnderline;
+
+			if (updatedSentence.Comment == null) {
+				currentSentence.Comment.SafeDelete();
+			}
+			currentSentence.Comment = updatedSentence.Comment;
 		}
 
 
 		public void CleanupChangedSentences() {
 			CleanChangedSentencesInternal(_changedSentenceList);
+			_changedSentenceList.Clear();
 		}
 
-		private void CleanChangedSentencesInternal(List<ChangedSentence> sentences) {
+		private static void CleanChangedSentencesInternal(List<ChangedSentence> sentences) {
 			Debug.WriteLine("Cleanup started.", "[Rhythm]");
 			var stopWatch = Stopwatch.StartNew();
 
 			var undoAction = new UndoAction("Light feather - cleanup sentences");
 
 			Parallel.ForEach(sentences, CleanSentence);
+			//sentences.ForEach(CleanSentence);
 
 			undoAction.Dispose();
 
@@ -52,9 +56,12 @@ namespace LightFeather.Features.Rhythm {
 		}
 
 		private static void CleanSentence(ChangedSentence changedSentence) {
-			changedSentence.SafeCleanBackgroundColor();
+			var stopWatch = Stopwatch.StartNew();
 			changedSentence.SafeCleanUnderline();
+			Debug.WriteLine($"Underline: {stopWatch.ElapsedMilliseconds}ms");
+			stopWatch.Restart();
 			changedSentence.Comment.SafeDelete();
+			Debug.WriteLine($"Comment: {stopWatch.ElapsedMilliseconds}ms");
 		}
 	}
 }

@@ -20,24 +20,15 @@ namespace LightFeather.Features.Rhythm {
 			foreach (Range sentence in paragraph.Range.Sentences) {
 				var trimmedSentence = sentence.Trim();
 
-				CleanLeftoverBackgroundColorManipulation(trimmedSentence);
 				CleanLeftoverUnderlineManipulation(trimmedSentence);
 			}
 		}
-
 
 		private static void CleanLeftoverUnderlineManipulation(Range trimmedSentence) {
 			if (trimmedSentence.Underline != WdUnderline.wdUnderlineWavyHeavy)
 				return;
 
 			trimmedSentence.Underline = WdUnderline.wdUnderlineNone;
-		}
-
-		private static void CleanLeftoverBackgroundColorManipulation(Range trimmedSentence) {
-			if (trimmedSentence.Shading.BackgroundPatternColor != RhythmConsts.IncorrectRhythmBackgroundColor)
-				return;
-
-			trimmedSentence.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
 		}
 
 		private static void CleanAllLeftoverComments() {

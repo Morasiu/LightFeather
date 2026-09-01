@@ -1,7 +1,6 @@
 ﻿using LightFeather.Shared;
 using Microsoft.Office.Interop.Word;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -16,11 +15,16 @@ namespace LightFeather.Extensions {
 		public static void SafeDelete(this Comment comment) {
 			if (comment is null)
 				return;
+
+			SafeDeleteComment(comment);
+		}
+
+		private static void SafeDeleteComment(Comment comment) {
 			try {
 				if (comment.Done)
 					return;
 
-				comment?.Delete();
+				comment.Delete();
 			}
 			catch (COMException) {
 				//ignore
